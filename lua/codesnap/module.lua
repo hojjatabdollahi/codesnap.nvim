@@ -46,7 +46,14 @@ end
 function module.load_generator(is_debug)
   local generator_path = module.generator_file_path(is_debug)
 
-  package.cpath = path_utils.join(";", package.cpath, generator_path)
+  -- Extract directory and add proper cpath patterns with ? placeholder
+  local generator_dir = path_utils.back(generator_path)
+  local extension = module.get_lib_extension()
+
+  -- Add patterns for both "generator.so" and "libgenerator.so" naming conventions
+  local pattern1 = path_utils.join(sep, generator_dir, "?." .. extension)
+  local pattern2 = path_utils.join(sep, generator_dir, "lib?." .. extension)
+  package.cpath = path_utils.join(";", package.cpath, pattern1, pattern2)
 
   if module.generator == nil then
     module.generator = require("generator")
