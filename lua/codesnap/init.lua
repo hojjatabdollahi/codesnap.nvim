@@ -3,18 +3,27 @@ local table_utils = require("codesnap.utils.table")
 local module = require("codesnap.module")
 local config_module = require("codesnap.config")
 local modal = require("codesnap.modal")
-
--- Prepare the path of the Rust module
--- Try to fetch pre-built library first, then fallback to development build
-local generator = module.load_generator()
+local platform_utils = require("codesnap.utils.platform")
+local path_utils = require("codesnap.utils.path")
 
 local main = {
   cwd = static.cwd,
   highlight_mode_config = nil,
 }
 
+-- Lazy load generator after config is set
+local generator_cache = nil
+local function get_generator()
+  if generator_cache == nil then
+    generator_cache = module.load_generator(static.config.debug)
+  end
+  return generator_cache
+end
+
 function main.setup(config)
   static.config = table_utils.merge_config(static.config, config == nil and {} or config)
+  -- Reset generator cache when config changes to reload with new debug setting
+  generator_cache = nil
 end
 
 -- Save snapshot to specified save_path
@@ -37,14 +46,17 @@ end
 
 -- Copy snapshot into clipboard
 function main.copy()
-  generator.copy(config_module.get_config())
+  local config = config_module.get_config()
+  get_generator().copy(config)
   vim.cmd("delmarks <>")
   vim.notify("The snapshot is copied into clipboard successfully!")
 end
 
 -- Generate ASCII code snapshot and copy it into clipboard
 function main.copy_ascii()
-  generator.copy_ascii(config_module.get_config())
+  -- Note: ASCII clipboard copy uses direct method since Rust doesn't expose save_ascii yet
+  -- If freeze occurs on Wayland, we'd need to add save_ascii to generator/src/lib.rs
+  get_generator().copy_ascii(config_module.get_config())
   vim.cmd("delmarks <>")
   vim.notify("The ASCII code snapshot is copied into clipboard successfully!")
 end
@@ -89,7 +101,7 @@ function main.copy_highlight()
       { start_line, end_line, static.config.highlight_color },
     }
 
-    generator.copy(config)
+    get_generator().copy(config)
     vim.cmd("delmarks <>")
     vim.notify("The snapshot is copied into clipboard successfully!")
   end)

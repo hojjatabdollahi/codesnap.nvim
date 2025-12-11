@@ -2,6 +2,10 @@ local path_utils = require("codesnap.utils.path")
 
 return {
   config = {
+    -- Set to true to use the debug build from generator/target/debug/
+    -- If the debug build doesn't exist, it will automatically run 'make build_generator_debug'
+    -- Set to false to use the release build (default)
+    debug = false,
     show_line_number = true,
     diff_config = {
       add_color = "#98C37960",

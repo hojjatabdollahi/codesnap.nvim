@@ -29,7 +29,7 @@ function config_module.get_config()
 
   local config = table_utils.assign(static.config.snapshot_config, {
     content = code_content,
-    theme = module.load_generator().parse_code_theme(static.config.snapshot_config.theme),
+    theme = module.load_generator(static.config.debug).parse_code_theme(static.config.snapshot_config.theme),
   })
 
   return config
