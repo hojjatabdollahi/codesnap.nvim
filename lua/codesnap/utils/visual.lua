@@ -27,7 +27,11 @@ function visual_utils.get_selected_lines()
 end
 
 function visual_utils.get_selected_text()
-  return table.concat(visual_utils.get_selected_lines(), "\n")
+  local res = visual_utils.get_selected_lines()
+  if type(res) == "string" then
+    return res
+  end
+  return table.concat(res, "\n")
 end
 
 function visual_utils.get_selected_text_realtime()
